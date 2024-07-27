@@ -1,11 +1,12 @@
 import shutil
 import uuid
 import paho.mqtt.client as paho
+import paho.mqtt.enums as paho_enums
 
 class StorageMonitor:
     def __init__(self, machine_id: uuid.UUID, disk_path: str):
         self.machine_id: uuid.UUID = machine_id
-        self.mqtt_client = paho.Client()
+        self.mqtt_client = paho.Client(callback_api_version = paho_enums.CallbackAPIVersion.VERSION2)
         self.mqtt_client.connect("localhost", 1883, 60)
         self.mqtt_client.publish(f"sensor/{self.machine_id}/Disk_Usage", payload=("hot".encode()), qos=1)
         print(f"Audit broker on `sensor/{self.machine_id}/Disk_Usage`")

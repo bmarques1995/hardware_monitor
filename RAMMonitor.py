@@ -1,11 +1,12 @@
 import psutil
 import uuid
 import paho.mqtt.client as paho
+import paho.mqtt.enums as paho_enums
 
 class RAMMonitor:
     def __init__(self, machine_id: uuid.UUID):
         self.machine_id: uuid.UUID = machine_id
-        self.mqtt_client = paho.Client()
+        self.mqtt_client = paho.Client(callback_api_version = paho_enums.CallbackAPIVersion.VERSION2)
         self.mqtt_client.connect("localhost", 1883, 60)
         self.mqtt_client.publish(f"sensor/{self.machine_id}/RAM_Usage", payload="hot", qos=1)
         print(f"Audit broker on `sensor/{self.machine_id}/RAM_Usage`")
