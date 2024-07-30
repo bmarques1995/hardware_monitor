@@ -13,9 +13,10 @@ class RAMMonitor:
         self.machine_id: uuid.UUID = machine_id
         self.mqtt_client = paho.Client(callback_api_version = paho_enums.CallbackAPIVersion.VERSION2)
         self.mqtt_client.connect("localhost", 1883, 60)
+        self.mqtt_client.loop_start()
         self.max_avaliable_ram : int = psutil.virtual_memory().total
         self.used_ram : int = 0
-        self.delta_time = 1000
+        self.delta_time = 100
         self.publish_endpoint = f"sensor/{self.machine_id}/ram_usage"
         self.is_running = True
         print(f"Publishing in: {self.publish_endpoint}")
@@ -27,6 +28,7 @@ class RAMMonitor:
         return self.used_ram
     
     def shutdown(self):
+        self.mqtt_client.loop_stop()
         self.is_running = False
 
     def trace_sensor(self) -> None:

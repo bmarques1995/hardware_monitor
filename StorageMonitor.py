@@ -11,10 +11,11 @@ class StorageMonitor:
         self.machine_id: uuid.UUID = machine_id
         self.mqtt_client = paho.Client(callback_api_version = paho_enums.CallbackAPIVersion.VERSION2)
         self.mqtt_client.connect("localhost", 1883, 60)
+        self.mqtt_client.loop_start()
         self.disk_path : str = disk_path
         self.max_avaliable_storage : int = shutil.disk_usage(self.disk_path).total
         self.used_storage : float = 0.0
-        self.delta_time = 1000
+        self.delta_time = 100
         self.publish_endpoint = f"sensor/{self.machine_id}/disk_usage"
         self.is_running = True
         print(f"Publishing in: {self.publish_endpoint}")
@@ -29,6 +30,7 @@ class StorageMonitor:
         return self.disk_path
 
     def shutdown(self):
+        self.mqtt_client.loop_stop()
         self.is_running = False
 
     def trace_sensor(self) -> None:

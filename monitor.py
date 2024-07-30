@@ -52,32 +52,35 @@ class Monitor:
         self.storage_t.start()
 
     def info_loop(self, delta_time: int):
+        result = {
+            "machine_id": f"{uuid.UUID(machineid.id())}",
+            "sensors":[
+                {
+                    "sensor_id": "ram_usage",
+                    "data_type": "float",
+                    "data_interval": 100
+                },
+                {
+                    "sensor_id": "disk_usage",
+                    "data_type": "float",
+                    "data_interval": 100
+                }
+            ]
+        }
+
+        json_result = json.dumps(result)
+        mqtt_client = paho.Client(callback_api_version = paho_enums.CallbackAPIVersion.VERSION2)
+        mqtt_client.connect("localhost", 1883, 60)
+        mqtt_client.loop_start()
         while(self.running):
             start : float = time.time()
-            result = {
-                "machine_id": f"{uuid.UUID(machineid.id())}",
-                "sensors":[
-                    {
-                        "sensor_id": "ram_usage",
-                        "data_type": "float",
-                        "data_interval": 1000
-                    },
-                    {
-                        "sensor_id": "disk_usage",
-                        "data_type": "float",
-                        "data_interval": 1000
-                    }
-                ]
-            }
-
-            json_result = json.dumps(result)
-            mqtt_client = paho.Client(callback_api_version = paho_enums.CallbackAPIVersion.VERSION2)
-            mqtt_client.connect("localhost", 1883, 60)
+            
             mqtt_client.publish("/sensor_monitors", payload=(json_result.encode()), qos=1)
             sleep_time = (delta_time/1000.0) + start
             sleep_time = sleep_time - time.time()
             if(sleep_time > 0.0):
                 time.sleep(sleep_time)
+        mqtt_client.loop_stop()
     
 
 monitor = Monitor()
