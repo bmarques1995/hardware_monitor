@@ -3,6 +3,7 @@ from threading import Thread
 import uuid
 import paho.mqtt.client as paho
 import paho.mqtt.enums as paho_enums
+import pymongo
 import SensorEndpoint
 import EndpointOutput
 
@@ -34,6 +35,7 @@ class Endpoint:
 class EndpointEntities:
     
     def __init__(self, sensors_info: str):
+        self.mongo_conn = pymongo.MongoClient("mongodb://localhost:27017/")
         self.sensors_info = json.loads(sensors_info)
         self.sensors: list[SensorEndpoint.SensorEndpoint] = []
         self.machine_id = str(self.sensors_info['machine_id'])
@@ -41,7 +43,7 @@ class EndpointEntities:
         self.logger_t = Thread(target= self.logger.print_infos, args=())
         for i, iterator in enumerate(self.sensors_info["sensors"]):
             sensor_id = str(iterator['sensor_id'])
-            self.sensors.insert(i, SensorEndpoint.SensorEndpoint(self.machine_id, sensor_id, self.logger))
+            self.sensors.insert(i, SensorEndpoint.SensorEndpoint(self.machine_id, sensor_id, self.logger, self.mongo_conn))
 
         self.sensors_thread: list[Thread] = []
         for i, iterator in enumerate(self.sensors):
