@@ -4,6 +4,7 @@ import uuid
 import paho.mqtt.client as paho
 import paho.mqtt.enums as paho_enums
 import SensorEndpoint
+import EndpointOutput
 
 class Endpoint:
     def __init__(self):
@@ -36,26 +37,27 @@ class EndpointEntities:
         self.sensors_info = json.loads(sensors_info)
         self.sensors: list[SensorEndpoint.SensorEndpoint] = []
         self.machine_id = str(self.sensors_info['machine_id'])
+        self.logger = EndpointOutput.Logger()
+        self.logger_t = Thread(target= self.logger.print_infos, args=())
         for i, iterator in enumerate(self.sensors_info["sensors"]):
             sensor_id = str(iterator['sensor_id'])
-            self.sensors.insert(i, SensorEndpoint.SensorEndpoint(self.machine_id, sensor_id))
+            self.sensors.insert(i, SensorEndpoint.SensorEndpoint(self.machine_id, sensor_id, self.logger))
 
         self.sensors_thread: list[Thread] = []
         for i, iterator in enumerate(self.sensors):
             self.sensors_thread.insert(i, Thread(target = self.sensors[i].operation_loop, args=()))
         
         self.reader_t = Thread(target=self.finish_thread, args=())
+        
 
     def start_components(self):
         self.reader_t.start()
+        self.logger_t.start()
         for it in self.sensors_thread:
             it.start()
 
     def shutdown_all(self):
-        for it in self.sensors:
-            it.shutdown()
-        for it in self.sensors_thread:
-            it.join()
+        exit(0)
 
     def join_reader(self):
         self.reader_t.join()
